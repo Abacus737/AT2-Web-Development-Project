@@ -11,11 +11,13 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(150), nullable=False)
+
 
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -25,14 +27,17 @@ class Review(db.Model):
     rating = db.Column(db.Integer, nullable=False)
     text = db.Column(db.Text, nullable=False)
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 @app.route('/')
 def home():
     reviews = Review.query.all()
     return render_template('home.html', reviews=reviews)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -48,6 +53,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -61,11 +67,13 @@ def login():
             flash('Login failed. Check your username and password.', 'danger')
     return render_template('login.html')
 
+
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
 
 @app.route('/review', methods=['GET', 'POST'])
 @login_required
@@ -80,6 +88,7 @@ def review():
         flash('Review posted successfully!', 'success')
         return redirect(url_for('home'))
     return render_template('review.html')
+
 
 if __name__ == '__main__':
     db.create_all()  # Create database tables
