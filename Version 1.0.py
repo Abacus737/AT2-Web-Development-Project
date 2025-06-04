@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
-from sqlalchemy import or_
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -64,8 +63,8 @@ def register():
         email = request.form['email']
         password = request.form['password']
 
-        # Check if user already exists using OR filtering
-        if User.query.filter(or_(User.username == username, User.email == email)).first():
+        # Check if user already exists (Optional but recommended)
+        if User.query.filter((User.username == username) | (User.email == email)).first():
             flash('Username or email already exists. Please choose a different one.', 'danger')
             return redirect(url_for('register'))
 
@@ -73,7 +72,7 @@ def register():
             User.create(username=username, email=email, password=password)
             flash('Registration successful! Please log in.', 'success')
         except Exception as e:
-            # In production, you might want to log the exception e
+            # Log the exception in a production scenario
             flash('An error occurred during registration. Please try again.', 'danger')
         return redirect(url_for('login'))
     return render_template('register.html')
@@ -105,7 +104,7 @@ def logout():
 def review():
     if request.method == 'POST':
         title = request.form['title']
-        rating = int(request.form['rating'])  # Make sure to cast rating appropriately
+        rating = request.form['rating']
         text = request.form['text']
         new_review = Review(title=title, user_id=current_user.id, rating=rating, text=text)
         db.session.add(new_review)
@@ -116,6 +115,5 @@ def review():
 
 
 if __name__ == '__main__':
-    # Create database tables if not already created
-    db.create_all()
+    db.create_all()  # Create database tables if not already created
     app.run(debug=True)
